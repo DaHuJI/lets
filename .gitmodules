@@ -10,6 +10,3 @@
 [submodule "pp/oppai-rx"]
 	path = pp/oppai-rx
 	url = https://github.com/osuAkatsuki/akatsuki-pp-relax.git
-[submodule "pp/catch_the_pp"]
-	path = pp/catch_the_pp
-	url = https://github.com/Kanaze-chan/catch-the-pp.git
