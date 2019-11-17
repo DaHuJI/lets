@@ -13,4 +13,3 @@
 [submodule "pp/catch_the_pp"]
 	path = pp/catch_the_pp
 	url = https://github.com/Kanaze-chan/catch-the-pp.git
-	branch = cython
