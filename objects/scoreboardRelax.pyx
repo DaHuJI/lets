@@ -3,6 +3,7 @@ from common.ripple import userUtils
 from constants import rankedStatuses
 from common.constants import mods as modsEnum
 from objects import glob
+from objects import beatmap
 
 
 class scoreboardRelax:
@@ -25,6 +26,14 @@ class scoreboardRelax:
 		self.country = country
 		self.friends = friends
 		self.mods = mods
+		self.relax = 1
+		self.ppboard = 1
+		if glob.conf.extra["lets"]["submit"]["loved-dont-give-pp"] and beatmap.rankedStatus == 5:
+			self.ppboard = 0
+		elif userUtils.PPBoard(self.userID, self.relax) == 1:
+			self.ppboard = 1
+		else:
+			self.ppboard = 0
 		if setScores:
 			self.setScores()
 
@@ -122,10 +131,10 @@ class scoreboardRelax:
 			friends = ""
 
 		# Sort and limit at the end
-		if not glob.conf.extra["lets"]["scoreboard"]["ppboard"] and self.mods <= -1 or self.mods & modsEnum.AUTOPLAY == 0:
+		if not self.ppboard and self.mods <= -1 or self.mods & modsEnum.AUTOPLAY == 0:
 			# Order by score if we aren't filtering by mods or autoplay mod is disabled
 			order = "ORDER BY score DESC"
-		elif self.mods & modsEnum.AUTOPLAY > 0 or glob.conf.extra["lets"]["scoreboard"]["ppboard"]:
+		elif self.mods & modsEnum.AUTOPLAY > 0 or self.ppboard:
 			# Otherwise, filter by pp
 			order = "ORDER BY pp DESC"
 		limit = "LIMIT 50"
@@ -177,14 +186,14 @@ class scoreboardRelax:
 
 		# It's not even in cache, get it from db
 		if personalBestScore is not None and self.personalBestRank < 1:
-			self.setPersonalBest()
+			self.setPersonalBestRank()
 
 		# Cache our personal best rank so we can eventually use it later as
 		# before personal best rank" in submit modular when building ranking panel
 		if self.personalBestRank >= 1:
 			glob.personalBestCache.set(self.userID, self.personalBestRank, self.beatmap.fileMD5)
 
-	def setPersonalBest(self):
+	def setPersonalBestRank(self):
 		"""
 		Set personal best rank ONLY
 		Ikr, that query is HUGE but xd
@@ -203,7 +212,7 @@ class scoreboardRelax:
 		if hasScore is None:
 			return
 
-		overwrite = glob.conf.extra["lets"]["scoreboard"]["ppboard"] and "pp" or "score"
+		overwrite = self.ppboard and "pp" or "score"
 		
 		# We have a score, run the huge query
 		# Base query
@@ -239,12 +248,12 @@ class scoreboardRelax:
 			data += "\n"
 		else:
 			# Set personal best score rank
-			self.setPersonalBest()	# sets self.personalBestRank with the huge query
+			self.setPersonalBestRank()	# sets self.personalBestRank with the huge query
 			self.scores[0].setRank(self.personalBestRank)
-			data += self.scores[0].getData(pp=glob.conf.extra["lets"]["scoreboard"]["ppboard"])
+			data += self.scores[0].getData(pp=self.ppboard)
 
 		# Output top 50 scores
 		for i in self.scores[1:]:
-			data += i.getData(pp=glob.conf.extra["lets"]["scoreboard"]["ppboard"] or (self.mods > -1 and self.mods & modsEnum.AUTOPLAY > 0))
+			data += i.getData(pp=self.ppboard or (self.mods > -1 and self.mods & modsEnum.AUTOPLAY > 0))
 
 		return data

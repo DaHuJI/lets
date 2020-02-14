@@ -5,7 +5,7 @@ from objects import glob
 class cacheMiss(Exception):
 	pass
 
-class personalBestCache:
+class personalBestCacheRX:
 	def get(self, userID, fileMd5, country=False, friends=False, mods=-1):
 		"""
 		Get cached personal best rank
@@ -19,13 +19,13 @@ class personalBestCache:
 		"""
 		try:
 			# Make sure the value is in cache
-			data = glob.redis.get("lets:personal_best_cache:{}".format(userID))
+			data = glob.redis.get("lets:personal_best_cache_relax:{}".format(userID))
 			if data is None:
 				raise cacheMiss()
 
 			# Unpack cached data
 			data = data.decode("utf-8").split("|")
-			cachedpersonalBestRank = int(data[0])
+			cachedpersonalBestRankRX = int(data[0])
 			cachedfileMd5 = str(data[1])
 			cachedCountry = generalUtils.stringToBool(data[2])
 			cachedFriends = generalUtils.stringToBool(data[3])
@@ -36,10 +36,10 @@ class personalBestCache:
 				raise cacheMiss()
 
 			# Cache hit
-			log.debug("personalBestCache hit")
-			return cachedpersonalBestRank
+			log.debug("personalBestCacheRX hit")
+			return cachedpersonalBestRankRX
 		except cacheMiss:
-			log.debug("personalBestCache miss")
+			log.debug("personalBestCacheRX miss")
 			return 0
 
 	def set(self, userID, rank, fileMd5, country=False, friends=False, mods=-1):
@@ -54,5 +54,5 @@ class personalBestCache:
 		:param mods: leaderboard mods
 		:return:
 		"""
-		glob.redis.set("lets:personal_best_cache:{}".format(userID), "{}|{}|{}|{}|{}".format(rank, fileMd5, country, friends, mods), 1800)
-		log.debug("personalBestCache set")
+		glob.redis.set("lets:personal_best_cache_relax:{}".format(userID), "{}|{}|{}|{}|{}".format(rank, fileMd5, country, friends, mods), 1800)
+		log.debug("personalBestCacheRX set")

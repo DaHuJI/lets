@@ -35,6 +35,7 @@ from handlers import getFullReplayHandlerRelax
 from handlers import getReplayHandler
 from handlers import getScoresHandler
 from handlers import getScreenshotHandler
+from handlers import getSeasonalHandler
 from handlers import loadTestHandler
 from handlers import mapsHandler
 from handlers import inGameRegistrationHandler
@@ -42,10 +43,12 @@ from handlers import getFullErrorHandler
 from handlers import osuErrorHandler
 from handlers import osuSearchHandler
 from handlers import osuSearchSetHandler
+from handlers import osuSessionHandler
 from handlers import redirectHandler
 from handlers import submitModularHandler
 from handlers import uploadScreenshotHandler
 from handlers import commentHandler
+from handlers import lastFMHandler
 from helpers import config
 from helpers import consoleHelper
 from common import generalUtils
@@ -63,9 +66,11 @@ def make_app():
 		(r"/web/osu-submit-modular.php", submitModularHandler.handler),
 		(r"/web/osu-submit-modular-selector.php", submitModularHandler.handler),
 		(r"/web/osu-getreplay.php", getReplayHandler.handler),
+		(r"/web/osu-getseasonal.php", getSeasonalHandler.handler),
 		(r"/web/osu-screenshot.php", uploadScreenshotHandler.handler),
 		(r"/web/osu-search.php", osuSearchHandler.handler),
 		(r"/web/osu-search-set.php", osuSearchSetHandler.handler),
+		(r"/web/osu-session.php", osuSessionHandler.handler),
 		(r"/web/check-updates.php", checkUpdatesHandler.handler),
 		(r"/web/osu-error.php", osuErrorHandler.handler),
 		(r"/web/osu-comment.php", commentHandler.handler),
@@ -81,8 +86,8 @@ def make_app():
 		(r"/web/replays_relax/(.*)", getFullReplayHandlerRelax.handler),
 		(r"/web/errorlogs/(.*)", getFullErrorHandler.handler),
 
-		(r"/p/verify", redirectHandler.handler, dict(destination="https://bigtu.vip/")),
-		(r"/u/(.*)", redirectHandler.handler, dict(destination="https://bigtu.vip/u/{}")),
+		(r"/p/verify", redirectHandler.handler, dict(destination="https://ainu.pw/")),
+		(r"/u/(.*)", redirectHandler.handler, dict(destination="https://ainu.pw/u/{}")),
 
 		(r"/api/v1/status", apiStatusHandler.handler),
 		(r"/api/v1/pp", apiPPHandler.handler),
@@ -91,11 +96,13 @@ def make_app():
 		(r"/letsapi/v1/status", apiStatusHandler.handler),
 		(r"/letsapi/v1/pp", apiPPHandler.handler),
 		(r"/letsapi/v1/cacheBeatmap", apiCacheBeatmapHandler.handler),
-
+		(r"/web/lastfm.php", lastFMHandler.handler),
+		
 		# Not done yet
-		(r"/web/osu-addfavourite.php", osuErrorHandler.handler), # I use the error handler as I want an empty response for the time being
-		(r"/web/lastfm.php", emptyHandler.handler),
-		(r"/web/osu-checktweets.php", emptyHandler.handler),
+		(r"/web/osu-get-beatmap-topic.php", emptyHandler.handler), # Beatmap Topic
+		(r"/web/osu-markasread.php", emptyHandler.handler), # Mark As Read
+		(r"/web/osu-addfavourite.php", emptyHandler.handler), # Add Favorite
+		(r"/web/osu-checktweets.php", emptyHandler.handler), # Do we need this?
 
 		(r"/loadTest", loadTestHandler.handler),
 	], default_handler_class=defaultHandler.handler)

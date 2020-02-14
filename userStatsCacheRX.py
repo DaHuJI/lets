@@ -3,7 +3,7 @@ from common.ripple import userUtils
 from objects import glob
 import json
 
-class userStatsCache:
+class userStatsCacheRX:
 	def get(self, userID, gameMode):
 		"""
 		Get cached user stats from redis.
@@ -13,14 +13,14 @@ class userStatsCache:
 		:param gameMode: game mode number
 		:return: userStats dictionary (rankedScore, totalScore, pp, accuracy, playcount)
 		"""
-		data = glob.redis.get("lets:user_stats_cache:{}:{}".format(gameMode, userID))
+		data = glob.redis.get("lets:user_stats_cache_relax:{}:{}".format(gameMode, userID))
 		if data is None:
 			# If data is not cached, cache it and call get function again
-			log.debug("userStatsCache miss")
+			log.debug("userStatsCacheRX miss")
 			self.update(userID, gameMode)
 			return self.get(userID, gameMode)
 
-		log.debug("userStatsCache hit")
+		log.debug("userStatsCacheRX hit")
 		retData = json.loads(data.decode("utf-8"))
 		return retData
 
@@ -36,6 +36,6 @@ class userStatsCache:
 		if data is None:
 			data = {}
 		if len(data) == 0:
-			data = userUtils.getUserStats(userID, gameMode)
-		log.debug("userStatsCache set {}".format(data))
-		glob.redis.set("lets:user_stats_cache:{}:{}".format(gameMode, userID), json.dumps(data), 1800)
+			data = userUtils.getUserStatsRx(userID, gameMode)
+		log.debug("userStatsCacheRX set {}".format(data))
+		glob.redis.set("lets:user_stats_cache_relax:{}:{}".format(gameMode, userID), json.dumps(data), 1800)

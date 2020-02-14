@@ -7,13 +7,13 @@ import tornado.web
 from raven.contrib.tornado import SentryMixin
 
 from objects import beatmap
-from common.constants import gameModes
+from common.constants import gameModes, mods
 from common.log import logUtils as log
 from common.web import requestsManager
 from constants import exceptions
 from helpers import osuapiHelper
 from objects import glob
-from pp import rippoppai
+from pp import rippoppai, relaxoppai
 from common.sentry import sentry
 
 MODULE_NAME = "api/pp"
@@ -71,6 +71,8 @@ class handler(requestsManager.asyncRequestHandler):
 			# Get beatmap md5 from osuapi
 			# TODO: Move this to beatmap object
 			osuapiData = osuapiHelper.osuApiRequest("get_beatmaps", "b={}".format(beatmapID))
+			if int(beatmapID) > 100000000:
+				raise exceptions.ppCustomBeatmap(MODULE_NAME)
 			if osuapiData is None or "file_md5" not in osuapiData or "beatmapset_id" not in osuapiData:
 				raise exceptions.invalidBeatmapException(MODULE_NAME)
 			beatmapMd5 = osuapiData["file_md5"]
@@ -97,28 +99,38 @@ class handler(requestsManager.asyncRequestHandler):
 			if gameMode in (gameModes.STD, gameModes.TAIKO):
 				# Std pp
 				if accuracy is None and modsEnum == 0:
-					# Generic acc/no mod
+					# Generic acc/nomod
 					# Get cached pp values
 					cachedPP = bmap.getCachedTillerinoPP()
+					if (modsEnum&mods.RELAX):
+						cachedPP = [0,0,0,0]
+
 					if cachedPP != [0,0,0,0]:
 						log.debug("Got cached pp.")
 						returnPP = cachedPP
 					else:
 						log.debug("Cached pp not found. Calculating pp with oppai...")
 						# Cached pp not found, calculate them
-						oppai = rippoppai.oppai(bmap, mods=modsEnum, tillerino=True)
+						if gameMode == gameModes.STD and (modsEnum&mods.RELAX):
+							oppai = relaxoppai.oppai(bmap, mods=modsEnum, tillerino=True)
+						else:
+							oppai = rippoppai.oppai(bmap, mods=modsEnum, tillerino=True)
 						returnPP = oppai.pp
 						bmap.starsStd = oppai.stars
 
-						# Cache values in DB
-						log.debug("Saving cached pp...")
-						if type(returnPP) is list and len(returnPP) == 4:
-							bmap.saveCachedTillerinoPP(returnPP)
+						if not (modsEnum&mods.RELAX):
+							# Cache values in DB
+							log.debug("Saving cached pp...")
+							if type(returnPP) == list and len(returnPP) == 4:
+								bmap.saveCachedTillerinoPP(returnPP)
 				else:
 					# Specific accuracy/mods, calculate pp
 					# Create oppai instance
 					log.debug("Specific request ({}%/{}). Calculating pp with oppai...".format(accuracy, modsEnum))
-					oppai = rippoppai.oppai(bmap, mods=modsEnum, tillerino=accuracy is None)
+					if gameMode == gameModes.STD and (modsEnum&mods.RELAX):
+						oppai = relaxoppai.oppai(bmap, mods=modsEnum, tillerino=True)
+					else:
+						oppai = rippoppai.oppai(bmap, mods=modsEnum, tillerino=True)
 					bmap.starsStd = oppai.stars
 					if accuracy is not None:
 						returnPP = calculatePPFromAcc(oppai, accuracy)
@@ -144,6 +156,9 @@ class handler(requestsManager.asyncRequestHandler):
 			# Set error and message
 			statusCode = 400
 			data["message"] = "missing required arguments"
+		except exceptions.ppCustomBeatmap:
+			statusCode = 400
+			data["message"] = "Custom map does not supported pp calculating yet"
 		except exceptions.invalidBeatmapException:
 			statusCode = 400
 			data["message"] = "beatmap not found"

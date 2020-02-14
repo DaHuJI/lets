@@ -82,6 +82,9 @@ class config:
 			self.config.get("discord", "boturl")
 			self.config.get("discord", "devgroup")
 			self.config.get("discord", "secretwebhook")
+			self.config.get("discord", "ahook")
+			self.config.get("discord", "score")
+			self.config.get("discord", "rxscore")
 
 			self.config.get("cono", "enable")
 
@@ -147,6 +150,9 @@ class config:
 		self.config.set("discord", "boturl", "")
 		self.config.set("discord", "devgroup", "")
 		self.config.set("discord", "secretwebhook", "")
+		self.config.set("discord", "ahook", "")
+		self.config.set("discord", "score", "")
+		self.config.set("discord", "rxscore", "")
 
 		self.config.add_section("cono")
 		self.config.set("cono", "enable", "False")
