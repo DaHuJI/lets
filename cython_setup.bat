@@ -1,7 +1,7 @@
 @ECHO OFF
 title Cythonizing files...
 cythonize -a -i common/db/dbConnector.pyx
-cythonize -a -i handlers/getScoreHandler.pyx
+cythonize -a -i handlers/getScoresHandler.pyx
 cythonize -a -i handlers/submitModularHandler.pyx
 cythonize -a -i objects/beatmap.pyx
 cythonize -a -i objects/score.pyx
